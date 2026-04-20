@@ -21,7 +21,7 @@ const MENU_STYLES = {
     color: 'white'
   },
   '&:hover': {
-    bgcolor: 'primary.50'
+    bgcolor: 'rgba(255, 255, 255, 0.2)'
   }
 }
 
@@ -40,9 +40,11 @@ function BoardBar({ board }) {
       '&::-webkit-scrollbar-track':{ m: 2 }
     }}>
       <Box sx={{ display: 'flex', alignItems: 'center', gap : 2 }}>
-        <Chip
-          sx={MENU_STYLES}
-          icon={<DashboardIcon />} label={board?.title} clickable />
+        <Tooltip title={board?.description}>
+          <Chip
+            sx={MENU_STYLES}
+            icon={<DashboardIcon />} label={board?.title} clickable />
+        </Tooltip>
         <Chip
           sx={MENU_STYLES}
           icon={<VpnLockIcon />} label={capitalizeFirstLetter(board?.type)} clickable />
@@ -76,7 +78,7 @@ function BoardBar({ board }) {
               border: 'none',
               color: 'white',
               cursor: 'pointer',
-              '&:first-of-type': { bgColor: '#a4b0be'}
+              '&:first-of-type': { bgcolor: '#a4b0be' }
             }
           }}
         >
