@@ -1,12 +1,49 @@
-import Board from '~/pages/Boards/_id'
+import { Routes, Route, Navigate, Outlet } from 'react-router-dom'
 
+import Board from '~/pages/Boards/_id'
+import NotFound from '~/pages/404/NotFound'
+import Auth from '~/pages/Auth/Auth'
+import AccountVerification from '~/pages/Auth/AccountVerification'
+import { useSelector } from 'react-redux'
+import { selectCurrentUser } from '~/redux/user/userSlice'
+import Settings from '~/pages/Settings/Settings'
+import Boards from '~/pages/Boards'
+
+const ProtectedRoute = ({ user }) => {
+  if (!user) return <Navigate to='/login' replace={true} />
+  return <Outlet />
+}
 
 function App() {
+  const curentUser = useSelector(selectCurrentUser)
 
   return (
-    <>
-      <Board />
-    </>
+    <Routes>
+      {/* Redirect Route */}
+      <Route path='/' element={
+        // replace true để thay thế route / (route / không nằm trong history browser)
+        <Navigate to="/boards" replace={true} />
+      } />
+
+      <Route element={<ProtectedRoute user={curentUser} />}>
+        {/* Board Details */}
+        <Route path='/boards/:boardId' element={<Board />} />
+        <Route path='/boards' element={<Boards />} />
+
+        {/* User Settings */}
+        <Route path='/settings/account' element={<Settings />} />
+        <Route path='/settings/security' element={<Settings />} />
+      </Route>
+
+      {/* Authentication */}
+      <Route path='/login' element={<Auth />} />
+      <Route path='/register' element={<Auth />} />
+      <Route path='/account/verification' element={<AccountVerification />} />
+
+      {/* 404 not found page */}
+      <Route path='*' element={<NotFound />} />
+
+    </Routes>
   )
 }
 

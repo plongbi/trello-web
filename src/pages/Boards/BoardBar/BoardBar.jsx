@@ -5,12 +5,11 @@ import VpnLockIcon from '@mui/icons-material/VpnLock'
 import AddToDriveIcon from '@mui/icons-material/AddToDrive'
 import BoltIcon from '@mui/icons-material/Bolt'
 import FilterListIcon from '@mui/icons-material/FilterList'
-import Avatar from '@mui/material/Avatar'
-import AvatarGroup from '@mui/material/AvatarGroup'
 import Tooltip from '@mui/material/Tooltip'
-import Button from '@mui/material/Button'
-import PersonAddIcon from '@mui/icons-material/PersonAdd'
 import { capitalizeFirstLetter } from '~/utils/formatters'
+import BoardUserGroup from './BoardUserGroup'
+import InviteBoardUser from './InviteBoardUser'
+
 const MENU_STYLES = {
   color: 'white',
   bgcolor: 'transparent',
@@ -60,32 +59,11 @@ function BoardBar({ board }) {
       </Box>
 
       <Box sx={{ display: 'flex', alignItems: 'center', gap : 2 }}>
-        <Button variant="outlined" startIcon={<PersonAddIcon />}
-          sx={{
-            color: 'white',
-            borderColor: 'white',
-            '&:hover': { borderColor: 'white' }
-          }}
-        >Invite</Button>
-        <AvatarGroup
-          max={7}
-          sx={{
-            gap: '10px',
-            '& .MuiAvatar-root': {
-              width: 34,
-              height: 34,
-              fontSize: 16,
-              border: 'none',
-              color: 'white',
-              cursor: 'pointer',
-              '&:first-of-type': { bgcolor: '#a4b0be' }
-            }
-          }}
-        >
-          <Tooltip title='long'>
-            <Avatar alt="Remy Sharp" src="/static/images/avatar/1.jpg" />
-          </Tooltip>
-        </AvatarGroup>
+        {/* Xử lý mời user là member của board */}
+        <InviteBoardUser boardId={board._id} />
+
+        {/* Xử lý hiển thị ds thành viên của board */}
+        <BoardUserGroup boardUsers={board?.FE_allUsers} />
       </Box>
     </Box>
   )

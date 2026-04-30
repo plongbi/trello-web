@@ -20,6 +20,7 @@ import LibraryAddIcon from '@mui/icons-material/LibraryAdd'
 import InputAdornment from '@mui/material/InputAdornment'
 import SearchIcon from '@mui/icons-material/Search'
 import CloseIcon from '@mui/icons-material/Close'
+import { Link } from 'react-router-dom'
 
 
 function AppBar() {
@@ -39,11 +40,18 @@ function AppBar() {
       '&::-webkit-scrollbar-track':{ m: 2 }
     }}>
       <Box sx={{ display: 'flex', alignItems: 'center', gap : 2 }}>
-        <AppsIcon sx={{ color: 'white' }} />
-        <Box sx={{ display: 'flex', alignItems: 'center', gap : 0.5 }}>
-          <SvgIcon component={TrelloIcon} fontSize='small' inheritViewBox sx={{ color: 'white' }} />
-          <Typography variant='span' sx={{ fontSize: '1.2rem', fontWeight: 'bold', color: 'white' }}>Trello</Typography>
-        </Box>
+        <Link to="/boards">
+          <Tooltip title="Board List">
+            <AppsIcon sx={{ color: 'white', verticalAlign: 'middle' }} />
+          </Tooltip>
+        </Link>
+
+        <Link to="/">
+          <Box sx={{ display: 'flex', alignItems: 'center', gap : 0.5 }}>
+            <SvgIcon component={TrelloIcon} fontSize='small' inheritViewBox sx={{ color: 'white' }} />
+            <Typography variant='span' sx={{ fontSize: '1.2rem', fontWeight: 'bold', color: 'white' }}>Trello</Typography>
+          </Box>
+        </Link>
         <Box sx ={{ display: { xs: 'none', md: 'flex' }, gap: 1 }}>
           <Workspaces />
           <Recent />
