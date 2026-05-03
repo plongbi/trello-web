@@ -11,8 +11,6 @@ import Starred from './Menus/Starred'
 import Templates from './Menus/Templates'
 import Button from '@mui/material/Button'
 import TextField from '@mui/material/TextField'
-import NotificationsNoneIcon from '@mui/icons-material/NotificationsNone'
-import Badge from '@mui/material/Badge'
 import Tooltip from '@mui/material/Tooltip'
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline'
 import Profiles from './Menus/Profiles'
@@ -21,6 +19,8 @@ import InputAdornment from '@mui/material/InputAdornment'
 import SearchIcon from '@mui/icons-material/Search'
 import CloseIcon from '@mui/icons-material/Close'
 import { Link } from 'react-router-dom'
+import Notifications from './Notifications/Notifications'
+import AutoCompleteSearchBoard from './SearchBoards/AutoCompleteSearchBoard'
 
 
 function AppBar() {
@@ -66,7 +66,10 @@ function AppBar() {
         </Box>
       </Box>
       <Box sx={{ display: 'flex', alignItems: 'center', gap : 2 }}>
-        <TextField id="outlined-search" label="Search..." type="text" size='small'
+        <TextField
+          id="outlined-search"
+          label="Search..."
+          type="text" size='small'
           value={searchValue}
           onChange={(e) => setSearchValue(e.target.value)}
           InputProps={{
@@ -96,13 +99,15 @@ function AppBar() {
               '&:hover fieldset': { borderColor: 'white' },
               '&.Mui-focused fieldset': { borderColor: 'white' }
             }
-          }} />
+          }}
+        />
+
+        {/* Dark - Light - System modes */}
         <ModeSelect />
-        <Tooltip title="Notifications">
-          <Badge color="warning" variant="dot" sx={{ cursor: 'pointer' }}>
-            <NotificationsNoneIcon sx={{ color: 'white' }} />
-          </Badge>
-        </Tooltip>
+
+        {/* Xử lý hiển thị các thông báo - notifications */}
+        <Notifications />
+
         <Tooltip title="Help" sx={{ cursor: 'pointer', color: 'white' }}>
           <HelpOutlineIcon />
         </Tooltip>

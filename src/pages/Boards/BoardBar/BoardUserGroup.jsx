@@ -62,8 +62,8 @@ function BoardUserGroup({ boardUsers = [], limit = 5 }) {
         </Tooltip>
       }
 
-      {/* Khi Click vào +number ở trên thì sẽ mở popover hiện toàn bộ users, sẽ không limit nữa */}
-      <Popover
+      {/* Khi Click vào +number ở trên thì sẽ mở popover hiện số user = (tổng số user - 5 cái đã set cố định) */}
+      {/* <Popover
         id={popoverId}
         open={isOpenPopover}
         anchorEl={anchorPopoverElement}
@@ -80,6 +80,28 @@ function BoardUserGroup({ boardUsers = [], limit = 5 }) {
               />
             </Tooltip>
           )}
+        </Box>
+      </Popover> */}
+      <Popover
+        id={popoverId}
+        open={isOpenPopover}
+        anchorEl={anchorPopoverElement}
+        onClose={handleTogglePopover}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
+      >
+        <Box sx={{ p: 2, maxWidth: '235px', display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+
+          {/* Dùng .slice() để cắt bỏ những người đã hiển thị ở ngoài */}
+          {boardUsers.slice(5).map((user, index) =>
+            <Tooltip title={user?.displayName} key={index}>
+              <Avatar
+                sx={{ width: 34, height: 34, cursor: 'pointer' }}
+                alt={user?.displayName}
+                src={user?.avatar}
+              />
+            </Tooltip>
+          )}
+
         </Box>
       </Popover>
     </Box>
