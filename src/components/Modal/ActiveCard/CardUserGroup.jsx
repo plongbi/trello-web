@@ -10,7 +10,7 @@ import { useSelector } from 'react-redux'
 import { selectCurrentActiveBoard } from '~/redux/activeBoard/activeBoardSlice'
 import { CARD_MEMBER_ACTIONS } from '~/utils/constants'
 
-function CardUserGroup({ cardMemberIds = [], onUpdateCardMembers }) {
+function CardUserGroup({ cardMemberIds = [], cardOwnerIds = [], onUpdateCardMembers }) {
   /**
    * Xử lý Popover để ẩn hoặc hiện toàn bộ user trên một cái popup, tương tự docs để tham khảo ở đây:
    * https://mui.com/material-ui/react-popover/
@@ -29,7 +29,9 @@ function CardUserGroup({ cardMemberIds = [], onUpdateCardMembers }) {
   // Dựa vào mảng board.FE_allUsers và card.memberIds rồi tạo ra 1 mảng FE_CardMembers chứa đủ thông tin
   // của User để hiện thị ra ngoài giao diện bởi mặc định trong card chỉ lưu id user(memberIds)
   const FE_CardMembers = board?.FE_allUsers?.filter(user => cardMemberIds.includes(user._id))
-  // console.log(FE_CardMembers)
+
+  // Chỉ hiển thị trong Popover những user không phải là Owner của Card
+  const assignableUsers = board?.FE_allUsers?.filter(user => !cardOwnerIds.includes(user._id)) || []
 
   const handleUpdateCardMembers = (user) => {
     // Tạo 1 biến incomingMemberInfo để gửi cho BE, với 2 thông tin chính là userId và action là xóa khỏi
@@ -93,7 +95,7 @@ function CardUserGroup({ cardMemberIds = [], onUpdateCardMembers }) {
         anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
       >
         <Box sx={{ p: 2, maxWidth: '260px', display: 'flex', flexWrap: 'wrap', gap: 1.5 }}>
-          {board.FE_allUsers.map((user, index) =>
+          {assignableUsers.map((user, index) =>
             <Tooltip title={user.displayName} key={index}>
               {/* Cách làm Avatar kèm badge icon: https://mui.com/material-ui/react-avatar/#with-badge */}
               <Badge

@@ -18,10 +18,16 @@ import CardMedia from '@mui/material/CardMedia'
 import Pagination from '@mui/material/Pagination'
 import PaginationItem from '@mui/material/PaginationItem'
 import { Link, useLocation } from 'react-router-dom'
+import { useSelector } from 'react-redux'
+import { selectCurrentUser } from '~/redux/user/userSlice'
 import randomColor from 'randomcolor'
 import SidebarCreateBoardModal from './create'
-import { fetchBoardsAPI } from '~/apis'
+import { fetchBoardsAPI, deleteBoardAPI } from '~/apis'
 import { DEFAULT_ITEMS_PER_PAGE, DEFAULT_PAGE } from '~/utils/constants'
+import { useConfirm } from 'material-ui-confirm'
+import { toast } from 'react-toastify'
+import IconButton from '@mui/material/IconButton'
+import DeleteIcon from '@mui/icons-material/Delete'
 
 import { styled } from '@mui/material/styles'
 // Styles của mấy cái Sidebar item menu, anh gom lại ra đây cho gọn.
@@ -43,6 +49,8 @@ const SidebarItem = styled(Box)(({ theme }) => ({
 }))
 
 function Boards() {
+  const confirmDeleteBoard = useConfirm()
+  const currentUser = useSelector(selectCurrentUser)
   // Số lượng bản ghi boards hiển thị tối đa trên 1 page tùy dự án (thường sẽ là 12 cái)
   const [boards, setBoards] = useState(null)
   // Tổng toàn bộ số lượng bản ghi boards có trong Database mà phía BE trả về để FE dùng tính toán phân trang
@@ -77,8 +85,25 @@ function Boards() {
   }, [location.search])
 
   const afterCreateBoard = () => {
-    // fetch lại danh sách board
     fetchBoardsAPI(location.search).then(updateStateData)
+  }
+
+  const handleDeleteBoard = (board) => {
+    confirmDeleteBoard({
+      title: 'Delete board?',
+      description: `This action will permanently delete your board "${board.title}" and its columns, cards! Are you sure?`,
+      confirmationText: 'Confirm',
+      cancellationText: 'Cancel'
+    }).then(() => {
+      // Update chuẩn dữ liệu state boards
+      setBoards(prevBoards => prevBoards.filter(b => b._id !== board._id))
+      setTotalBoards(prevTotal => prevTotal - 1)
+
+      // Gọi API xử lý phía BE
+      deleteBoardAPI(board._id).then(res => {
+        toast.success(res?.deleteResult)
+      })
+    }).catch(() => {})
   }
 
   // Lúc chưa tồn tại boards > đang chờ gọi api thì hiện loading
@@ -97,14 +122,14 @@ function Boards() {
                 <SpaceDashboardIcon fontSize="small" />
                 Boards
               </SidebarItem>
-              <SidebarItem>
+              {/* <SidebarItem>
                 <ListAltIcon fontSize="small" />
                 Templates
-              </SidebarItem>
-              <SidebarItem>
+              </SidebarItem> */}
+              {/* <SidebarItem>
                 <HomeIcon fontSize="small" />
                 Home
-              </SidebarItem>
+              </SidebarItem> */}
             </Stack>
             <Divider sx={{ my: 1 }} />
             <Stack direction="column" spacing={1}>
@@ -128,7 +153,26 @@ function Boards() {
                     <Card sx={{ width: '250px' }}>
                       {/* Ý tưởng mở rộng về sau làm ảnh Cover cho board nhé */}
                       {/* <CardMedia component="img" height="100" image="https://picsum.photos/100" /> */}
-                      <Box sx={{ height: '50px', backgroundColor: randomColor() }}></Box>
+                      <Box sx={{ position: 'relative' }}>
+                        <Box sx={{ height: '50px', backgroundColor: randomColor() }}></Box>
+                        {/* Chỉ hiển thị nút xóa nếu user hiện tại là owner của board */}
+                        {b.ownerIds?.includes(currentUser?._id) &&
+                          <IconButton
+                            size="small"
+                            onClick={() => handleDeleteBoard(b)}
+                            sx={{
+                              position: 'absolute',
+                              top: 5,
+                              right: 5,
+                              color: 'white',
+                              backgroundColor: 'rgba(0, 0, 0, 0.2)',
+                              '&:hover': { backgroundColor: 'rgba(0, 0, 0, 0.4)' }
+                            }}
+                          >
+                            <DeleteIcon fontSize="small" />
+                          </IconButton>
+                        }
+                      </Box>
 
                       <CardContent sx={{ p: 1.5, '&:last-child': { p: 1.5 } }}>
                         <Typography gutterBottom variant="h6" component="div">

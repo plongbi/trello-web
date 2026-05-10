@@ -92,7 +92,7 @@ function Board() {
   }
 
   return (
-    <Container disableGutters maxWidth={false} sx = {{ height: '100vh' }}>
+    <Container disableGutters maxWidth={false} sx={{ height: '100vh' }}>
       {/* Modal Active Card, check đóng/mở dựa theo state isShowModalActiveCard trong redux */}
       <ActiveCard />
 

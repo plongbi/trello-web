@@ -19,6 +19,11 @@ export const updateBoardDetailsAPI = async (boardId, updateData) => {
   return response.data
 }
 
+export const deleteBoardAPI = async (boardId) => {
+  const response = await authorizedAxiosInstance.delete(`${API_ROOT}/v1/boards/${boardId}`)
+  return response.data
+}
+
 export const moveCardToDifferentColumnAPI = async (updateData) => {
   const response = await authorizedAxiosInstance.put(`${API_ROOT}/v1/boards/supports/moving_cards`, updateData)
   return response.data
@@ -51,6 +56,11 @@ export const updateCardDetailsAPI = async (cardId, updateData) => {
   return response.data
 }
 
+export const deleteCardDetailsAPI = async (cardId) => {
+  const response = await authorizedAxiosInstance.delete(`${API_ROOT}/v1/cards/${cardId}`)
+  return response.data
+}
+
 // User
 export const registerUserAPI = async (data) => {
   const response = await authorizedAxiosInstance.post(`${API_ROOT}/v1/users/register`, data)
@@ -72,5 +82,32 @@ export const verifyUserAPI = async (data) => {
 
 export const refreshTokenAPI = async () => {
   const response = await authorizedAxiosInstance.get(`${API_ROOT}/v1/users/refresh_token`)
+  return response.data
+}
+
+// Chatbot
+export const chatBotAPI = async (data) => {
+  const response = await authorizedAxiosInstance.post('/v1/chatbot/chat', data)
+  return response.data
+}
+
+// Chat (Conversations and Messages)
+export const fetchConversationsAPI = async (boardId) => {
+  const response = await authorizedAxiosInstance.get(`${API_ROOT}/v1/conversations/${boardId}`)
+  return response.data
+}
+
+export const createNewConversationAPI = async (data) => {
+  const response = await authorizedAxiosInstance.post(`${API_ROOT}/v1/conversations`, data)
+  return response.data
+}
+
+export const fetchMessagesAPI = async (conversationId) => {
+  const response = await authorizedAxiosInstance.get(`${API_ROOT}/v1/messages/${conversationId}`)
+  return response.data
+}
+
+export const createNewMessageAPI = async (data) => {
+  const response = await authorizedAxiosInstance.post(`${API_ROOT}/v1/messages`, data)
   return response.data
 }

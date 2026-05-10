@@ -39,7 +39,7 @@ function Profiles() {
       cancellationText: 'Cancel'
     }).then(() => {
       dispatch(logoutUserAPI())
-    }).catch(() => {})
+    }).catch(() => { })
   }
 
   return (

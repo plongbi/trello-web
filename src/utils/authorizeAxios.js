@@ -3,7 +3,7 @@ import { toast } from 'react-toastify'
 import { interceptorLoadingElements } from './formatters'
 import { refreshTokenAPI } from '~/apis'
 import { logoutUserAPI } from '~/redux/user/userSlice'
-import { retry } from '@reduxjs/toolkit/query'
+import { API_ROOT } from '~/utils/constants'
 
 // Ko thể import {store} from '~/redux/store' theo cách thông thường
 // Giải pháp: Inject store: kỹ thuật khi cần sử dụng biến redux store ở các file ngoài phạm vi
@@ -17,7 +17,9 @@ export const injectStore = mainStore => {
 }
 
 // Khởi tạo 1 đối tượng Axios mục đích custom và cấu hình chung dự án
-let authorizedAxiosInstance = axios.create()
+let authorizedAxiosInstance = axios.create({
+  baseURL: API_ROOT
+})
 
 // Thời gian chờ tối đa 1 request: 10p
 authorizedAxiosInstance.defaults.timeout = 10 * 60 * 1000

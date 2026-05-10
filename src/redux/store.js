@@ -3,6 +3,7 @@ import { activeBoardReducer } from './activeBoard/activeBoardSlice'
 import { userReducer } from './user/userSlice'
 import { activeCardReducer } from './activeCard/activeCardSlice'
 import { notificationsReducer } from './notifications/notificationsSlice'
+import { chatReducer } from './chat/chatSlice'
 
 // Cấu hình redux-persist
 import { combineReducers } from 'redux'
@@ -22,7 +23,8 @@ const reducers = combineReducers({
   activeBoard: activeBoardReducer,
   user: userReducer,
   activeCard: activeCardReducer,
-  notifications: notificationsReducer
+  notifications: notificationsReducer,
+  chat: chatReducer
 })
 
 // Thực thi persist reducer

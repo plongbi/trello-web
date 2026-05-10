@@ -1,11 +1,13 @@
 import Box from '@mui/material/Box'
 import Modal from '@mui/material/Modal'
 import Typography from '@mui/material/Typography'
+import Avatar from '@mui/material/Avatar'
 import CreditCardIcon from '@mui/icons-material/CreditCard'
 import CancelIcon from '@mui/icons-material/Cancel'
 import Grid from '@mui/material/Unstable_Grid2'
 import Stack from '@mui/material/Stack'
 import Divider from '@mui/material/Divider'
+import DeleteIcon from '@mui/icons-material/Delete';
 import PersonOutlineOutlinedIcon from '@mui/icons-material/PersonOutlineOutlined'
 import LocalOfferOutlinedIcon from '@mui/icons-material/LocalOfferOutlined'
 import TaskAltOutlinedIcon from '@mui/icons-material/TaskAltOutlined'
@@ -38,11 +40,14 @@ import {
   updateCurrentActiveCard,
   selectIsShowModalActiveCard
 } from '~/redux/activeCard/activeCardSlice'
-import { updateCardDetailsAPI } from '~/apis'
-import { updateCardInBoard } from '~/redux/activeBoard/activeBoardSlice'
+import { updateCardDetailsAPI, deleteCardDetailsAPI } from '~/apis'
+import { updateCardInBoard, selectCurrentActiveBoard, updateCurrentActiveBoard } from '~/redux/activeBoard/activeBoardSlice'
 import { selectCurrentUser } from '~/redux/user/userSlice'
 import { CARD_MEMBER_ACTIONS } from '~/utils/constants'
-import PersonRemoveIcon from '@mui/icons-material/PersonRemove';
+import PersonRemoveIcon from '@mui/icons-material/PersonRemove'
+import { useConfirm } from 'material-ui-confirm'
+import { cloneDeep, isEmpty } from 'lodash'
+import { generatePlaceholderCard } from '~/utils/formatters'
 
 const SidebarItem = styled(Box)(({ theme }) => ({
   display: 'flex',
@@ -74,9 +79,43 @@ function ActiveCard() {
   const activeCard = useSelector(selectCurrentActiveCard)
   const isShowModalActiveCard = useSelector(selectIsShowModalActiveCard)
   const currentUser = useSelector(selectCurrentUser)
+  const board = useSelector(selectCurrentActiveBoard)
+
+  const cardOwner = board?.FE_allUsers?.find(u => activeCard?.ownerIds?.includes(u._id))
 
   const handleCloseModal = () => {
     dispatch(clearAndHideCurrentActiveCard())
+  }
+
+  const confirmDeleteCard = useConfirm()
+  const handleDeleteCard = () => {
+    confirmDeleteCard({
+      title: 'Delete card?',
+      description: 'This action will permanently delete your card! Are you sure?',
+      confirmationText: 'Confirm',
+      cancellationText: 'Cancel'
+    }).then(() => {
+      // Update data state board
+      const newBoard = cloneDeep(board)
+      const columnToUpdate = newBoard.columns.find(c => c._id === activeCard.columnId)
+      if (columnToUpdate) {
+        columnToUpdate.cards = columnToUpdate.cards.filter(c => c._id !== activeCard._id)
+        columnToUpdate.cardOrderIds = columnToUpdate.cardOrderIds.filter(_id => _id !== activeCard._id)
+        
+        // Add placeholder card if empty
+        if (isEmpty(columnToUpdate.cards)) {
+          columnToUpdate.cards = [generatePlaceholderCard(columnToUpdate)]
+          columnToUpdate.cardOrderIds = [generatePlaceholderCard(columnToUpdate)._id]
+        }
+      }
+      dispatch(updateCurrentActiveBoard(newBoard))
+      handleCloseModal()
+
+      // Call API
+      deleteCardDetailsAPI(activeCard._id).then(res => {
+        toast.success(res?.deleteResult || 'Card deleted successfully')
+      })
+    }).catch(() => {})
   }
 
   // Fuction dùng chung cho các TH update card title, description,...
@@ -119,6 +158,14 @@ function ActiveCard() {
   // Dùng async await để component CardActivitySection chờ và nếu thành công thì mới clear thẻ imput comment
   const onAddCardComment = async (commentToAdd) => {
     await callApiUpdateCard({ commentToAdd })
+  }
+
+  const onUpdateCardComment = async (commentToUpdate) => {
+    await callApiUpdateCard({ commentToUpdate })
+  }
+
+  const onDeleteCardComment = async (commentToDelete) => {
+    await callApiUpdateCard({ commentToDelete })
   }
 
   const onUpdateCardMembers = (incomingMemberInfo) => {
@@ -176,14 +223,29 @@ function ActiveCard() {
         <Grid container spacing={2} sx={{ mb: 3 }}>
           {/* Left side */}
           <Grid xs={12} sm={9}>
-            <Box sx={{ mb: 3 }}>
-              <Typography sx={{ fontWeight: '600', color: 'primary.main', mb: 1 }}>Members</Typography>
+            <Box sx={{ display: 'flex', gap: 4, mb: 3 }}>
+              <Box>
+                <Typography sx={{ fontWeight: '600', color: 'primary.main', mb: 1 }}>Owner</Typography>
+                {cardOwner ? (
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Avatar src={cardOwner.avatar} alt={cardOwner.displayName} sx={{ width: 32, height: 32 }} />
+                    <Typography variant="body2" sx={{ fontWeight: '500' }}>{cardOwner.displayName}</Typography>
+                  </Box>
+                ) : (
+                  <Typography variant="body2" color="text.secondary">No owner</Typography>
+                )}
+              </Box>
 
-              {/* Feature 02: Xử lý các thành viên của Card */}
-              <CardUserGroup
-                cardMemberIds={activeCard?.memberIds}
-                onUpdateCardMembers={onUpdateCardMembers}
-              />
+              <Box>
+                <Typography sx={{ fontWeight: '600', color: 'primary.main', mb: 1 }}>Members</Typography>
+
+                {/* Feature 02: Xử lý các thành viên của Card */}
+                <CardUserGroup
+                  cardMemberIds={activeCard?.memberIds}
+                  cardOwnerIds={activeCard?.ownerIds}
+                  onUpdateCardMembers={onUpdateCardMembers}
+                />
+              </Box>
             </Box>
 
             <Box sx={{ mb: 3 }}>
@@ -209,6 +271,8 @@ function ActiveCard() {
               <CardActivitySection
                 cardComments={activeCard?.comments}
                 onAddCardComment={onAddCardComment}
+                onUpdateCardComment={onUpdateCardComment}
+                onDeleteCardComment={onDeleteCardComment}
               />
             </Box>
           </Grid>
@@ -219,31 +283,32 @@ function ActiveCard() {
             <Stack direction="column" spacing={1}>
 
               {/* Feature 05: Xử lý hành động bản thân user tự join vào card */}
-              {/* Nếu user hiện tại đang login chưa thuộc mảng memberIds của card thì mới hiện nút Join */}
-              {/* Khi Click nút Join thì sẽ là hành dộng ADD luôn */}
-              {!activeCard?.memberIds?.includes(currentUser._id) &&
-                <SidebarItem
-                  className="active"
-                  onClick={() => onUpdateCardMembers({
-                    userId: currentUser._id,
-                    action: CARD_MEMBER_ACTIONS.ADD
-                  })}
-                >
-                  <PersonOutlineOutlinedIcon fontSize="small" />
-                  Join
-                </SidebarItem>
-              }
-              {activeCard?.memberIds?.includes(currentUser._id) && (
-                <SidebarItem
-                  className="active"
-                  onClick={() => onUpdateCardMembers({
-                    userId: currentUser._id,
-                    action: CARD_MEMBER_ACTIONS.REMOVE
-                  })}
-                >
-                  <PersonRemoveIcon fontSize="small" />
-                  Leave
-                </SidebarItem>
+              {!activeCard?.ownerIds?.includes(currentUser._id) && (
+                <>
+                  {!activeCard?.memberIds?.includes(currentUser._id) ? (
+                    <SidebarItem
+                      className="active"
+                      onClick={() => onUpdateCardMembers({
+                        userId: currentUser._id,
+                        action: CARD_MEMBER_ACTIONS.ADD
+                      })}
+                    >
+                      <PersonOutlineOutlinedIcon fontSize="small" />
+                      Join
+                    </SidebarItem>
+                  ) : (
+                    <SidebarItem
+                      className="active"
+                      onClick={() => onUpdateCardMembers({
+                        userId: currentUser._id,
+                        action: CARD_MEMBER_ACTIONS.REMOVE
+                      })}
+                    >
+                      <PersonRemoveIcon fontSize="small" />
+                      Leave
+                    </SidebarItem>
+                  )}
+                </>
               )}
 
               {/* Feature 06: Xử lý hành động cập nhật ảnh Cover của Card */}
@@ -257,7 +322,12 @@ function ActiveCard() {
               <SidebarItem><LocalOfferOutlinedIcon fontSize="small" />Labels</SidebarItem>
               <SidebarItem><TaskAltOutlinedIcon fontSize="small" />Checklist</SidebarItem>
               <SidebarItem><WatchLaterOutlinedIcon fontSize="small" />Dates</SidebarItem>
-              <SidebarItem><AutoFixHighOutlinedIcon fontSize="small" />Custom Fields</SidebarItem>
+              {(activeCard?.ownerIds?.includes(currentUser._id) || board?.ownerIds?.includes(currentUser._id)) &&
+                <SidebarItem onClick={handleDeleteCard}>
+                  <DeleteIcon fontSize="small" />
+                  Delete card
+                </SidebarItem>
+              }
             </Stack>
 
             {/* <Divider sx={{ my: 2 }} />
